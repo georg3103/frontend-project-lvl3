@@ -31,4 +31,4 @@ $ make lint
 ```
 
 ## DEMO
-[link to project](https://frontend-project-lvl3-1.now.sh/)
+[link to project](https://frontend-project-lvl3.georg3103.now.sh/)
