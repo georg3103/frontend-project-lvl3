@@ -3,9 +3,6 @@
   "version": "0.0.1",
   "description": "rss reader",
   "main": "",
-  "engines": {
-    "node": ">=13"
-  },
   "files": [
     "dist"
   ],
