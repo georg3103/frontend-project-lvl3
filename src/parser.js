@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
-const getNodeTextContent = (node, tagName) => {
-  return node.querySelector(tagName).textContent || null;
-};
+const getNodeTextContent = (node, tagName) => (
+  node.querySelector(tagName).textContent || null
+);
 
 export default (data) => {
   const parser = new DOMParser();

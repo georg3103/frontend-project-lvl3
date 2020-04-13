@@ -1,3 +1,6 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-undef */
+/* eslint-disable func-names */
 import axios from 'axios';
 import _ from 'lodash';
 import { watch } from 'melanke-watchjs';
@@ -18,9 +21,9 @@ const elements = (function () {
   };
 }());
 
-const renderFeedItem = ({ link, title }) => {
-  return `<li><a href="${link}">${title}</a></li>`;
-};
+const renderFeedItem = ({ link, title }) => (
+  `<li><a href="${link}">${title}</a></li>`
+);
 
 const renderFeed = ({
   title, description, items, id,
