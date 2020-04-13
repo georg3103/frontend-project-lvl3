@@ -20,7 +20,7 @@ export default (data) => {
   }));
   return ({
     title: getNodeTextContent(doc, 'title'),
-    desc: getNodeTextContent(doc, 'description'),
+    description: getNodeTextContent(doc, 'description'),
     items: parsedItems,
   });
 };
