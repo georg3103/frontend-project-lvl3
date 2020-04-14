@@ -4,7 +4,9 @@
 /* eslint-disable func-names */
 import axios from 'axios';
 import _ from 'lodash';
+import i18next from 'i18next';
 import { watch } from 'melanke-watchjs';
+import resources from './locales';
 import parse from './parser';
 import validate from './validator';
 
@@ -100,6 +102,7 @@ const state = {
     urls: [],
     channels: [],
     news: [],
+    error: '',
   },
 };
 
@@ -118,7 +121,7 @@ const addRSSData = (url, state, data) => {
 };
 
 
-const render = (state) => {
+const render = (state, texts) => {
   const { rss, form } = state;
   watch(rss, 'channels', () => {
     const { channels, news } = rss;
@@ -138,9 +141,14 @@ const render = (state) => {
     });
   });
 
+  watch(rss, 'error', () => {
+    const { error } = rss;
+    renderWarning(texts(`errors.channel.${error}`));
+  });
+
   watch(form, 'error', () => {
     const { error } = form;
-    renderWarning(error);
+    renderWarning(texts(`errors.validation.${error}`));
   });
 
   watch(form, 'state', () => {
@@ -152,7 +160,7 @@ const render = (state) => {
       case 'loading':
         disableButton();
         break;
-      case 'networkError':
+      case 'error':
         disableButton();
         break;
       case 'ready':
@@ -172,9 +180,8 @@ const validateHandler = (state) => (url) => {
     validate(list, url);
     form.error = '';
     form.state = 'ready';
-  } catch ({ message }) {
-    console.log('message');
-    form.error = message;
+  } catch ({ type }) {
+    form.error = type;
     form.state = 'filling';
   }
 };
@@ -189,12 +196,10 @@ const getStream = (state, url) => {
     const { data } = res;
     const parsedData = parse(data);
     addRSSData(url, state, parsedData);
-    console.log(state);
   }).catch((error) => {
-    console.log(error.response);
-    state.form.error = error;
+    state.rss.error = 'network';
     // should check, which error
-    state.form.state = 'networkError';
+    state.form.state = 'error';
     throw new Error(error);
   });
 };
@@ -208,7 +213,13 @@ const formSubmitHandler = (state) => (url) => {
 };
 
 export default () => {
-  render(state);
   onInputChange(validateHandler(state));
   onFormSubmit(formSubmitHandler(state));
+  i18next.init({
+    lng: 'en',
+    debug: false,
+    resources,
+  }).then((texts) => {
+    render(state, texts);
+  });
 };
