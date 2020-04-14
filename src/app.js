@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-shadow */
 /* eslint-disable no-undef */
 /* eslint-disable func-names */
@@ -6,7 +7,8 @@ import _ from 'lodash';
 import { watch } from 'melanke-watchjs';
 import parse from './parser';
 import validate from './validator';
-// constroller
+
+// View
 
 const elements = (function () {
   const input = document.querySelector('#url-address');
@@ -40,8 +42,34 @@ const renderFeed = ({
   elements.container.appendChild(feedContainer);
 };
 
+const renderWarning = (message) => {
+  const alertContainer = document.createElement('div');
+  alertContainer.classList.add('warning__container');
+  alertContainer.innerHTML = `
+    <div class="alert alert-danger" role="alert">
+      ${message}
+    </div>
+  `;
+  elements.container.appendChild(alertContainer);
+};
+
+const removeWarning = () => {
+  const alerts = document.querySelectorAll('.alert');
+  if (alerts) {
+    alerts.forEach((alert) => alert.remove());
+  }
+};
+
+const clearForm = () => {
+  elements.form.reset();
+};
+
 const disableButton = () => {
   elements.button.disabled = true;
+};
+
+const enableButton = () => {
+  elements.button.disabled = false;
 };
 
 const onFormSubmit = (handler) => {
@@ -60,6 +88,8 @@ const onInputChange = (handler) => {
     handler(value);
   });
 };
+
+// Model
 
 const state = {
   form: {
@@ -88,19 +118,6 @@ const addRSSData = (url, state, data) => {
 };
 
 
-const getStream = (state) => (url) => {
-  const proxy = 'https://cors-anywhere.herokuapp.com';
-  axios({
-    method: 'get',
-    url: `${proxy}/${url}`,
-  }).then((res) => {
-    const { data } = res;
-    const parsedData = parse(data);
-    addRSSData(url, state, parsedData);
-    console.log(state);
-  });
-};
-
 const render = (state) => {
   const { rss, form } = state;
   watch(rss, 'channels', () => {
@@ -122,7 +139,29 @@ const render = (state) => {
   });
 
   watch(form, 'error', () => {
-    disableButton();
+    const { error } = form;
+    renderWarning(error);
+  });
+
+  watch(form, 'state', () => {
+    const { state } = form;
+    switch (state) {
+      case 'filling':
+        disableButton();
+        break;
+      case 'loading':
+        disableButton();
+        break;
+      case 'networkError':
+        disableButton();
+        break;
+      case 'ready':
+        enableButton();
+        removeWarning();
+        break;
+      default:
+        break;
+    }
   });
 };
 
@@ -131,15 +170,45 @@ const validateHandler = (state) => (url) => {
   const list = urls.map(({ url }) => url);
   try {
     validate(list, url);
+    form.error = '';
+    form.state = 'ready';
   } catch ({ message }) {
+    console.log('message');
     form.error = message;
+    form.state = 'filling';
   }
 };
 
+const getStream = (state, url) => {
+  const proxy = 'https://cors-anywhere.herokuapp.com';
+  state.form.state = 'loading';
+  return axios({
+    method: 'get',
+    url: `${proxy}/${url}`,
+  }).then((res) => {
+    const { data } = res;
+    const parsedData = parse(data);
+    addRSSData(url, state, parsedData);
+    console.log(state);
+  }).catch((error) => {
+    console.log(error.response);
+    state.form.error = error;
+    // should check, which error
+    state.form.state = 'networkError';
+    throw new Error(error);
+  });
+};
+
+const formSubmitHandler = (state) => (url) => {
+  getStream(state, url)
+    .then(() => {
+      state.form.state = 'filling';
+      clearForm();
+    });
+};
+
 export default () => {
-  // const testURL = 'https://ru.hexlet.io/lessons.rss';
-  // getStream(testURL);
   render(state);
   onInputChange(validateHandler(state));
-  onFormSubmit(getStream(state));
+  onFormSubmit(formSubmitHandler(state));
 };
