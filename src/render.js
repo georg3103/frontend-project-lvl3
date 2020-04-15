@@ -98,6 +98,7 @@ export default (state, texts) => {
       case 'finished':
         removeWarning();
         clearForm();
+        disableButton();
         break;
       default:
         throw new Error('Unsupported form state');
