@@ -1,7 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-shadow */
-/* eslint-disable no-undef */
-/* eslint-disable func-names */
 import axios from 'axios';
 import _ from 'lodash';
 import i18next from 'i18next';
@@ -11,11 +7,10 @@ import render from './render';
 import validate from './validator';
 import ELEMENTS from './elements';
 
-// View
-
 const onFormSubmit = (handler) => {
   ELEMENTS.form.addEventListener('submit', (e) => {
     e.preventDefault();
+    // eslint-disable-next-line no-undef
     const formData = new FormData(e.target);
     const url = formData.get('url');
     handler(url);
@@ -68,7 +63,7 @@ const getStream = (state, url) => {
     addRSSData(url, state, parsedData);
   }).catch((error) => {
     state.rss.error = 'network';
-    // should check, which error
+    // TODO: should check, which error
     state.form.state = 'error';
     throw new Error(error);
   });
