@@ -65,8 +65,10 @@ const updateRSSNewsData = (url, state, data) => {
   }
 };
 
-const getRSSData = (url) => {
+const getRSSData = (url, state) => {
   const proxy = 'https://cors-anywhere.herokuapp.com';
+  const { rss, form } = state;
+  form.state = 'loading';
   return axios({
     method: 'get',
     url: `${proxy}/${url}`,
@@ -74,26 +76,20 @@ const getRSSData = (url) => {
     const { data } = res;
     const parsedData = parse(data);
     return parsedData;
+  }).catch((error) => {
+    rss.error = 'network';
+    form.state = 'error';
+    throw new Error(`Network error ${error}`);
   });
 };
 
-const handleRSSErrors = (state, rssFn) => (...args) => rssFn(args)
-  .catch((error) => {
-    console.log(error);
-    state.rss.error = 'network';
-    // TODO: should check, which error
-    state.form.state = 'error';
-    throw new Error('Network error');
-  });
-
-
-const getStream = (state, url) => handleRSSErrors(state, getRSSData)(url)
+const getStream = (state, url) => getRSSData(url, state)
   .then((data) => {
     addRSSData(url, state, data);
   });
 
 
-const updateStream = (state, url) => handleRSSErrors(state, getRSSData)(url)
+const updateStream = (state, url) => getRSSData(url, state)
   .then((data) => {
     updateRSSNewsData(url, state, data);
     setTimeout(() => {

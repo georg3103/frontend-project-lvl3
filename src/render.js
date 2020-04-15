@@ -52,6 +52,14 @@ const enableButton = () => {
   ELEMENTS.button.disabled = false;
 };
 
+const disableInput = () => {
+  ELEMENTS.input.disabled = true;
+};
+
+const enableInput = () => {
+  ELEMENTS.input.disabled = false;
+};
+
 export default (state, texts) => {
   const { rss, form } = state;
   watch(rss, ['channels', 'news'], () => {
@@ -86,22 +94,30 @@ export default (state, texts) => {
     const { state: formState } = form;
     switch (formState) {
       case 'filling':
+        enableInput();
         disableButton();
         break;
       case 'error':
+        enableInput();
+        disableButton();
+        break;
+      case 'loading':
+        disableInput();
         disableButton();
         break;
       case 'ready':
+        enableInput();
         enableButton();
         removeWarning();
         break;
       case 'finished':
+        enableInput();
         removeWarning();
         clearForm();
         disableButton();
         break;
       default:
-        throw new Error('Unsupported form state');
+        throw new Error(`Unknown form state: '${formState}'!`);
     }
   });
 };
