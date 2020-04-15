@@ -58,9 +58,7 @@ const updateRSSNewsData = (url, state, data) => {
   const { rss } = state;
   const { items } = data;
   const { uuid: urlID } = _.find(rss.urls, (item) => item.url === url);
-  const newsToUpdate = _.find(rss.news, (item) => {
-    return item.uuid === urlID;
-  });
+  const newsToUpdate = _.find(rss.news, (item) => item.uuid === urlID);
   const newNews = _.differenceBy(items, newsToUpdate.items, 'title');
   if (newNews.length !== 0) {
     newsToUpdate.items = [...newsToUpdate.items, ...newNews];
