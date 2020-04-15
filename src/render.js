@@ -54,7 +54,7 @@ const enableButton = () => {
 
 export default (state, texts) => {
   const { rss, form } = state;
-  watch(rss, 'channels', () => {
+  watch(rss, ['channels', 'news'], () => {
     const { channels, news } = rss;
     channels.forEach(({
       title, description, uuid, id,
