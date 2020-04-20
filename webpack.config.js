@@ -23,12 +23,8 @@ module.exports = {
         },
       },
       {
-        test: /\.(sa|sc|c)ss$/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'sass-loader',
-        ],
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
@@ -55,6 +51,6 @@ module.exports = {
     overlay: true,
   },
   resolve: {
-    extensions: ['.js', '.css', '.scss'],
+    extensions: ['.js', '.css'],
   },
 };

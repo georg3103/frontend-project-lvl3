@@ -1,6 +1,12 @@
 /* eslint-disable no-undef */
 import { watch } from 'melanke-watchjs';
-import ELEMENTS from './elements';
+
+const elements = {
+  form: document.querySelector('#form'),
+  input: document.querySelector('#url-address'),
+  button: form.querySelector('button[type="submit"]'),
+  container: document.querySelector('.container'),
+};
 
 
 const renderFeedItem = ({ link, title }) => (
@@ -19,7 +25,7 @@ const renderFeed = ({
       ${items.map(renderFeedItem).join('')}
     </ul>
   `;
-  ELEMENTS.container.appendChild(feedContainer);
+  elements.container.appendChild(feedContainer);
 };
 
 const renderWarning = (message) => {
@@ -30,7 +36,7 @@ const renderWarning = (message) => {
       ${message}
     </div>
   `;
-  ELEMENTS.container.appendChild(alertContainer);
+  elements.container.appendChild(alertContainer);
 };
 
 const removeWarning = () => {
@@ -41,29 +47,29 @@ const removeWarning = () => {
 };
 
 const clearForm = () => {
-  ELEMENTS.form.reset();
+  elements.form.reset();
 };
 
 const disableButton = () => {
-  ELEMENTS.button.disabled = true;
+  elements.button.disabled = true;
 };
 
 const enableButton = () => {
-  ELEMENTS.button.disabled = false;
+  elements.button.disabled = false;
 };
 
 const disableInput = () => {
-  ELEMENTS.input.disabled = true;
+  elements.input.disabled = true;
 };
 
 const enableInput = () => {
-  ELEMENTS.input.disabled = false;
+  elements.input.disabled = false;
 };
 
 export default (state, texts) => {
-  const { rss, form } = state;
-  watch(rss, ['channels', 'news'], () => {
-    const { channels, news } = rss;
+  const { feed, form } = state;
+  watch(feed, ['channels', 'news'], () => {
+    const { channels, news } = feed;
     channels.forEach(({
       title, description, uuid, id,
     }) => {
@@ -80,8 +86,8 @@ export default (state, texts) => {
     });
   });
 
-  watch(rss, 'error', () => {
-    const { error } = rss;
+  watch(feed, 'error', () => {
+    const { error } = feed;
     renderWarning(texts(`errors.channel.${error}`));
   });
 
