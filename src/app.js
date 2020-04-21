@@ -75,6 +75,7 @@ const getRSSData = (url, state) => {
     .then((res) => {
       const { data } = res;
       const parsedData = parse(data);
+      feed.error = '';
       return parsedData;
     }).catch((error) => {
       if (error.request) {
@@ -82,7 +83,7 @@ const getRSSData = (url, state) => {
       } else {
         feed.error = error.type;
       }
-      form.state = 'error';
+      form.state = 'ready';
       throw new Error(`Network error ${error}`);
     });
 };

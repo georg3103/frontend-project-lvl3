@@ -28,24 +28,6 @@ const renderFeed = ({
   elements.container.appendChild(feedContainer);
 };
 
-const renderWarning = (message) => {
-  const alertContainer = document.createElement('div');
-  alertContainer.classList.add('warning__container');
-  alertContainer.innerHTML = `
-    <div class="alert alert-danger" role="alert">
-      ${message}
-    </div>
-  `;
-  elements.container.appendChild(alertContainer);
-};
-
-const removeWarning = () => {
-  const alerts = document.querySelectorAll('.alert');
-  if (alerts) {
-    alerts.forEach((alert) => alert.remove());
-  }
-};
-
 const clearForm = () => {
   elements.form.reset();
 };
@@ -88,22 +70,54 @@ export default (state, texts) => {
 
   watch(feed, 'error', () => {
     const { error } = feed;
-    renderWarning(texts(`errors.channel.${error}`));
+
+    const errorElement = document.querySelector('.alert-warning');
+
+    if (errorElement) {
+      errorElement.remove();
+    }
+
+    if (!error.length) {
+      return;
+    }
+
+    const translatedMessage = texts(`errors.channel.${error}`);
+
+    const warningMessage = document.createElement('div');
+    warningMessage.classList.add('alert', 'alert-warning');
+    warningMessage.setAttribute('role', 'alert');
+    warningMessage.innerHTML = translatedMessage;
+    elements.form.after(warningMessage);
   });
 
   watch(form, 'error', () => {
     const { error } = form;
-    renderWarning(texts(`errors.validation.${error}`));
+
+    const errorElement = document.querySelector('.invalid-feedback');
+
+    if (errorElement) {
+      elements.input.classList.remove('is-invalid');
+      errorElement.remove();
+    }
+
+    if (error.length === 0) {
+      return;
+    }
+
+    const translatedMessage = texts(`errors.validation.${error}`);
+    console.warn('translatedMessage', texts, translatedMessage);
+
+    const warningMessage = document.createElement('div');
+    warningMessage.classList.add('invalid-feedback');
+    warningMessage.innerHTML = translatedMessage;
+    elements.input.after(warningMessage);
+    elements.input.classList.add('is-invalid');
   });
 
   watch(form, 'state', () => {
     const { state: formState } = form;
     switch (formState) {
       case 'filling':
-        enableInput();
-        disableButton();
-        break;
-      case 'error':
         enableInput();
         disableButton();
         break;
@@ -114,11 +128,9 @@ export default (state, texts) => {
       case 'ready':
         enableInput();
         enableButton();
-        removeWarning();
         break;
       case 'finished':
         enableInput();
-        removeWarning();
         clearForm();
         disableButton();
         break;
