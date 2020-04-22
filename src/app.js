@@ -35,7 +35,6 @@ const state = {
     error: '',
   },
   feed: {
-    urls: [],
     channels: [],
     news: [],
     error: '',
@@ -46,11 +45,11 @@ const addRSSData = (url, state, data) => {
   const { feed } = state;
   const { title, description, items } = data;
   const uuid = _.uniqueId();
-  feed.urls = [...feed.urls, { url, uuid }];
   feed.channels = [...feed.channels, {
+    url,
+    uuid,
     title,
     description,
-    uuid,
     id: _.uniqueId('channel_'),
   }];
   feed.news = [...feed.news, { items, uuid, id: _.uniqueId('news_') }];
@@ -59,11 +58,11 @@ const addRSSData = (url, state, data) => {
 const updateRSSNewsData = (url, state, data) => {
   const { feed } = state;
   const { items } = data;
-  const { uuid: urlID } = _.find(feed.urls, (item) => item.url === url);
+  const { uuid: urlID } = _.find(feed.channels, (item) => item.url === url);
   const newsToUpdate = _.find(feed.news, (item) => item.uuid === urlID);
   const newNews = _.differenceBy(items, newsToUpdate.items, 'title');
   if (newNews.length !== 0) {
-    newsToUpdate.items.unshift(newsToUpdate.items);
+    newsToUpdate.items.unshift(...newNews);
   }
 };
 
@@ -103,8 +102,8 @@ const updateFeed = (state, url) => getRSSData(url, state)
   });
 
 const updateValidationState = (state) => (url) => {
-  const { feed: { urls }, form } = state;
-  const list = urls.map(({ url }) => url);
+  const { feed: { channels }, form } = state;
+  const list = channels.map(({ url }) => url);
   try {
     validate(list, url);
     form.error = '';

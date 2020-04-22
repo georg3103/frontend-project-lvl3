@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 const getNodeTextContent = (node, tagName) => (
   node.querySelector(tagName).textContent || null
 );

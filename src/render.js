@@ -1,10 +1,9 @@
-/* eslint-disable no-undef */
 import { watch } from 'melanke-watchjs';
 
 const elements = {
   form: document.querySelector('#form'),
   input: document.querySelector('#url-address'),
-  button: form.querySelector('button[type="submit"]'),
+  button: document.querySelector('button[type="submit"]'),
   container: document.querySelector('.container'),
 };
 
