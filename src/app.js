@@ -7,27 +7,6 @@ import render from './render';
 import validate from './validator';
 
 const timeout = 30000;
-const elements = {
-  form: document.querySelector('#form'),
-  input: document.querySelector('#url-address'),
-};
-
-const onFormSubmit = (cb) => {
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const url = formData.get('url');
-    cb(url);
-  });
-};
-
-const onInputChange = (cb) => {
-  elements.input.addEventListener('input', (e) => {
-    e.preventDefault();
-    const { target: { value } } = e;
-    cb(value);
-  });
-};
 
 const state = {
   form: {
@@ -87,12 +66,6 @@ const getRSSData = (url, state) => {
     });
 };
 
-const addFeed = (state, url) => getRSSData(url, state)
-  .then((data) => {
-    addRSSData(url, state, data);
-  });
-
-
 const updateFeed = (state, url) => getRSSData(url, state)
   .then((data) => {
     updateRSSNewsData(url, state, data);
@@ -101,7 +74,7 @@ const updateFeed = (state, url) => getRSSData(url, state)
     }, timeout);
   });
 
-const updateValidationState = (state) => (url) => {
+const updateValidationState = (state, url) => {
   const { feed: { channels }, form } = state;
   const list = channels.map(({ url }) => url);
   try {
@@ -114,8 +87,11 @@ const updateValidationState = (state) => (url) => {
   }
 };
 
-const getRSS = (state) => (url) => {
-  addFeed(state, url)
+const getRSS = (state, url) => {
+  getRSSData(url, state)
+    .then((data) => {
+      addRSSData(url, state, data);
+    })
     .then(() => {
       state.form.state = 'finished';
       setTimeout(() => {
@@ -125,8 +101,24 @@ const getRSS = (state) => (url) => {
 };
 
 export default () => {
-  onInputChange(updateValidationState(state));
-  onFormSubmit(getRSS(state));
+  const elements = {
+    form: document.querySelector('#form'),
+    input: document.querySelector('#url-address'),
+  };
+
+  elements.input.addEventListener('input', (e) => {
+    e.preventDefault();
+    const { target: { value } } = e;
+    updateValidationState(state, value);
+  });
+
+  elements.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const url = formData.get('url');
+    getRSS(state, url);
+  });
+
   i18next.init({
     lng: 'en',
     debug: false,

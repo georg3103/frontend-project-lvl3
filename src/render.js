@@ -1,53 +1,52 @@
 import { watch } from 'melanke-watchjs';
 
-const elements = {
-  form: document.querySelector('#form'),
-  input: document.querySelector('#url-address'),
-  button: document.querySelector('button[type="submit"]'),
-  container: document.querySelector('.container'),
-};
-
-
-const renderFeedItem = ({ link, title }) => (
-  `<li><a href="${link}">${title}</a></li>`
-);
-
-const renderFeed = ({
-  title, description, items, id,
-}) => {
-  const feedContainer = document.createElement('div');
-  feedContainer.setAttribute('data-key', id);
-  feedContainer.innerHTML = `
-    <h2>${title}</h2>
-    <p>${description}</p>
-    <ul>
-      ${items.map(renderFeedItem).join('')}
-    </ul>
-  `;
-  elements.container.appendChild(feedContainer);
-};
-
-const clearForm = () => {
-  elements.form.reset();
-};
-
-const disableButton = () => {
-  elements.button.disabled = true;
-};
-
-const enableButton = () => {
-  elements.button.disabled = false;
-};
-
-const disableInput = () => {
-  elements.input.disabled = true;
-};
-
-const enableInput = () => {
-  elements.input.disabled = false;
-};
-
 export default (state, texts) => {
+  const elements = {
+    form: document.querySelector('#form'),
+    input: document.querySelector('#url-address'),
+    button: document.querySelector('button[type="submit"]'),
+    container: document.querySelector('.container'),
+  };
+
+  const renderFeedItem = ({ link, title }) => (
+    `<li><a href="${link}">${title}</a></li>`
+  );
+
+  const renderFeed = ({
+    title, description, items, id,
+  }) => {
+    const feedContainer = document.createElement('div');
+    feedContainer.setAttribute('data-key', id);
+    feedContainer.innerHTML = `
+      <h2>${title}</h2>
+      <p>${description}</p>
+      <ul>
+        ${items.map(renderFeedItem).join('')}
+      </ul>
+    `;
+    elements.container.appendChild(feedContainer);
+  };
+
+  const clearForm = () => {
+    elements.form.reset();
+  };
+
+  const disableButton = () => {
+    elements.button.disabled = true;
+  };
+
+  const enableButton = () => {
+    elements.button.disabled = false;
+  };
+
+  const disableInput = () => {
+    elements.input.disabled = true;
+  };
+
+  const enableInput = () => {
+    elements.input.disabled = false;
+  };
+
   const { feed, form } = state;
   watch(feed, ['channels', 'news'], () => {
     const { channels, news } = feed;
