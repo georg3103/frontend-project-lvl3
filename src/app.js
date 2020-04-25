@@ -48,12 +48,12 @@ const updateRSSNewsData = (url, state, data) => {
 const getRSSData = (url, state) => {
   const proxy = 'https://cors-anywhere.herokuapp.com';
   const { feed, form } = state;
-  form.state = 'loading';
   return axios.get(`${proxy}/${url}`)
     .then((res) => {
       const { data } = res;
       const parsedData = parse(data);
       feed.error = '';
+      form.state = 'ready';
       return parsedData;
     }).catch((error) => {
       if (error.request) {
@@ -91,9 +91,9 @@ const getRSS = (state, url) => {
   getRSSData(url, state)
     .then((data) => {
       addRSSData(url, state, data);
+      state.form.state = 'finished';
     })
     .then(() => {
-      state.form.state = 'finished';
       setTimeout(() => {
         updateFeed(state, url);
       }, timeout);
@@ -116,6 +116,7 @@ export default () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
+    state.form.state = 'loading';
     getRSS(state, url);
   });
 
