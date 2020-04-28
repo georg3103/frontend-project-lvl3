@@ -10,5 +10,3 @@ jobs:
         run: make install
       - name: lint
         run: make lint
-      - name: build
-        run: make build
