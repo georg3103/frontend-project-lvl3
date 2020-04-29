@@ -53,7 +53,6 @@ const getRSSData = (url, state) => {
       const { data } = res;
       const parsedData = parse(data);
       feed.error = '';
-      form.state = 'ready';
       return parsedData;
     }).catch((error) => {
       if (error.request) {
@@ -61,8 +60,9 @@ const getRSSData = (url, state) => {
       } else {
         feed.error = error.type;
       }
-      form.state = 'ready';
       throw new Error(`Network error ${error}`);
+    }).finally(() => {
+      form.state = 'ready';
     });
 };
 
@@ -74,31 +74,10 @@ const updateFeed = (state, url) => getRSSData(url, state)
     }, timeout);
   });
 
-const updateValidationState = (state, url) => {
-  const { feed: { channels }, form } = state;
-  const list = channels.map(({ url }) => url);
-  try {
-    validate(list, url);
-    form.error = '';
-    form.state = 'ready';
-  } catch ({ type }) {
-    form.error = type;
-    form.state = 'filling';
-  }
-};
-
-const getRSS = (state, url) => {
-  getRSSData(url, state)
-    .then((data) => {
-      addRSSData(url, state, data);
-      state.form.state = 'finished';
-    })
-    .then(() => {
-      setTimeout(() => {
-        updateFeed(state, url);
-      }, timeout);
-    });
-};
+const getRSS = (state, url) => getRSSData(url, state)
+  .then((data) => {
+    addRSSData(url, state, data);
+  });
 
 export default () => {
   const elements = {
@@ -108,16 +87,33 @@ export default () => {
 
   elements.input.addEventListener('input', (e) => {
     e.preventDefault();
-    const { target: { value } } = e;
-    updateValidationState(state, value);
+    const { target: { value: url } } = e;
+    const { feed: { channels }, form } = state;
+    const list = channels.map(({ url }) => url);
+    try {
+      validate(list, url);
+      form.error = '';
+      form.state = 'ready';
+    } catch ({ type }) {
+      form.error = type;
+      form.state = 'filling';
+    }
   });
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const url = formData.get('url');
-    state.form.state = 'loading';
-    getRSS(state, url);
+    state.form.state = 'processing';
+    getRSS(state, url)
+      .then(() => {
+        state.form.state = 'finished';
+      })
+      .then(() => {
+        setTimeout(() => {
+          updateFeed(state, url);
+        }, timeout);
+      });
   });
 
   i18next.init({

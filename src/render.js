@@ -8,6 +8,12 @@ export default (state, texts) => {
     container: document.querySelector('.container'),
   };
 
+  const removeFeeds = () => {
+    Array.from(elements.container.children).forEach((feed) => {
+      feed.remove();
+    });
+  };
+
   const renderFeedItem = ({ link, title }) => (
     `<li><a href="${link}">${title}</a></li>`
   );
@@ -48,16 +54,12 @@ export default (state, texts) => {
   };
 
   const { feed, form } = state;
-  watch(feed, ['channels', 'news'], () => {
+  watch(feed, ['news'], () => {
+    removeFeeds();
     const { channels, news } = feed;
     channels.forEach(({
       title, description, uuid, id,
     }) => {
-      const channelContainer = document.querySelector(`[data-key=${id}]`);
-      if (channelContainer) {
-        channelContainer.remove();
-      }
-
       const [{ items }] = news.filter((item) => item.uuid === uuid);
 
       renderFeed({
@@ -103,8 +105,6 @@ export default (state, texts) => {
     }
 
     const translatedMessage = texts(`errors.validation.${error}`);
-    console.warn('translatedMessage', texts, translatedMessage);
-
     const warningMessage = document.createElement('div');
     warningMessage.classList.add('invalid-feedback');
     warningMessage.innerHTML = translatedMessage;
@@ -119,7 +119,7 @@ export default (state, texts) => {
         enableInput();
         disableButton();
         break;
-      case 'loading':
+      case 'processing':
         disableInput();
         disableButton();
         break;
