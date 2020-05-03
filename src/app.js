@@ -8,30 +8,22 @@ import validate from './validator';
 
 const timeout = 30000;
 
-const state = {
-  form: {
-    state: 'filling',
-    error: '',
-  },
-  feed: {
-    channels: [],
-    news: [],
-    error: '',
-  },
-};
-
 const addRSSData = (url, state, data) => {
   const { feed } = state;
   const { title, description, items } = data;
   const uuid = _.uniqueId();
-  feed.channels = [...feed.channels, {
+  feed.channels.push({
     url,
     uuid,
     title,
     description,
     id: _.uniqueId('channel_'),
-  }];
-  feed.news = [...feed.news, { items, uuid, id: _.uniqueId('news_') }];
+  });
+  feed.news.push({
+    items,
+    uuid,
+    id: _.uniqueId('news_'),
+  });
 };
 
 const updateRSSNewsData = (url, state, data) => {
@@ -45,41 +37,62 @@ const updateRSSNewsData = (url, state, data) => {
   }
 };
 
-const getRSSData = (url, state) => {
+const getRSSData = (url) => {
   const proxy = 'https://cors-anywhere.herokuapp.com';
-  const { feed, form } = state;
   return axios.get(`${proxy}/${url}`)
     .then((res) => {
       const { data } = res;
       const parsedData = parse(data);
-      feed.error = '';
       return parsedData;
-    }).catch((error) => {
+    })
+    .catch((error) => {
+      let resError;
       if (error.request) {
-        feed.error = error.request.status === 0 ? 'network' : 'access';
+        resError = error.request.status === 0 ? 'network' : 'access';
       } else {
-        feed.error = error.type;
+        resError = error.type;
       }
-      throw new Error(`Network error ${error}`);
-    }).finally(() => {
-      form.state = 'ready';
+      throw resError;
     });
 };
 
-const updateFeed = (state, url) => getRSSData(url, state)
+const updateFeed = (state, url) => getRSSData(url)
   .then((data) => {
+    state.form.state = 'ready';
+    state.feed.error = '';
     updateRSSNewsData(url, state, data);
     setTimeout(() => {
       updateFeed(state, url);
     }, timeout);
+  }).catch((error) => {
+    state.feed.error = error;
+    setTimeout(() => {
+      updateFeed(state, url);
+    }, 3000);
+    throw new Error(`Network error: ${error}`);
   });
 
-const getRSS = (state, url) => getRSSData(url, state)
+const getRSS = (state, url) => getRSSData(url)
   .then((data) => {
     addRSSData(url, state, data);
+  }).catch((error) => {
+    state.form.state = 'ready';
+    throw error;
   });
 
 export default () => {
+  const state = {
+    form: {
+      state: 'filling',
+      error: '',
+    },
+    feed: {
+      channels: [],
+      news: [],
+      error: '',
+    },
+  };
+
   const elements = {
     form: document.querySelector('#form'),
     input: document.querySelector('#url-address'),
@@ -108,11 +121,13 @@ export default () => {
     getRSS(state, url)
       .then(() => {
         state.form.state = 'finished';
-      })
-      .then(() => {
         setTimeout(() => {
           updateFeed(state, url);
         }, timeout);
+      })
+      .catch((error) => {
+        state.feed.error = error;
+        throw new Error(`Network error: ${error}`);
       });
   });
 
