@@ -60,8 +60,7 @@ export default (state, texts) => {
     channels.forEach(({
       title, description, uuid, id,
     }) => {
-      const [{ items }] = news.filter((item) => item.uuid === uuid);
-
+      const items = news.filter((item) => item.uuid === uuid);
       renderFeed({
         title, description, items, id,
       });

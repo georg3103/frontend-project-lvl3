@@ -12,6 +12,7 @@ export default {
       },
       channel: {
         network: 'Network problems',
+        parsing: 'Wrong document type',
       },
     },
 

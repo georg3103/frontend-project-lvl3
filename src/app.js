@@ -19,21 +19,27 @@ const addRSSData = (url, state, data) => {
     description,
     id: _.uniqueId('channel_'),
   });
-  feed.news.push({
-    items,
+  const news = items.map((item) => ({
     uuid,
+    ...item,
     id: _.uniqueId('news_'),
-  });
+  }));
+  feed.news.push(...news);
 };
 
 const updateRSSNewsData = (url, state, data) => {
   const { feed } = state;
   const { items } = data;
   const { uuid: urlID } = _.find(feed.channels, (item) => item.url === url);
-  const newsToUpdate = _.find(feed.news, (item) => item.uuid === urlID);
-  const newNews = _.differenceBy(items, newsToUpdate.items, 'title');
+  const newsToUpdate = feed.news.filter((item) => item.uuid === urlID);
+  const newNews = _.differenceBy(items, newsToUpdate, 'title')
+    .map((item) => ({
+      uuid: urlID,
+      ...item,
+      id: _.uniqueId('news_'),
+    }));
   if (newNews.length !== 0) {
-    newsToUpdate.items.unshift(...newNews);
+    feed.news.unshift(...newNews);
   }
 };
 
@@ -50,7 +56,7 @@ const getRSSData = (url) => {
       if (error.request) {
         resError = error.request.status === 0 ? 'network' : 'access';
       } else {
-        resError = error.type;
+        resError = error.message;
       }
       throw resError;
     });
@@ -61,15 +67,13 @@ const updateFeed = (state, url) => getRSSData(url)
     state.form.state = 'ready';
     state.feed.error = '';
     updateRSSNewsData(url, state, data);
+  }).catch((error) => {
+    state.feed.error = error;
+    throw new Error(`Network error: ${error}`);
+  }).finally(() => {
     setTimeout(() => {
       updateFeed(state, url);
     }, timeout);
-  }).catch((error) => {
-    state.feed.error = error;
-    setTimeout(() => {
-      updateFeed(state, url);
-    }, 3000);
-    throw new Error(`Network error: ${error}`);
   });
 
 const getRSS = (state, url) => getRSSData(url)
@@ -102,9 +106,9 @@ export default () => {
     e.preventDefault();
     const { target: { value: url } } = e;
     const { feed: { channels }, form } = state;
-    const list = channels.map(({ url }) => url);
+    const urls = channels.map(({ url }) => url);
     try {
-      validate(list, url);
+      validate(urls, url);
       form.error = '';
       form.state = 'ready';
     } catch ({ type }) {

@@ -7,7 +7,7 @@ export default (data) => {
   const doc = parser.parseFromString(data, 'application/xml');
   const isRSS = doc.contains(doc.querySelector('rss'));
   if (!isRSS) {
-    throw new Error('Wrong document type!');
+    throw new Error('parsing');
   }
   const [...items] = doc.querySelectorAll('item');
   const parsedItems = items.map((item) => ({
