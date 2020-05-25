@@ -6,6 +6,9 @@
 
 ## RSS Reader
 
+## How to use
+Enter http://lorem-rss.herokuapp.com/feed?unit=second&interval=30 in the input field
+
 ## Setup
 
 ```sh
