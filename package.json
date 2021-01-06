@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/georg3103/frontend-project-lvl3",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "bootstrap": "^4.4.1",
     "jquery": "^3.5.0",
     "lodash": "^4.17.14",
